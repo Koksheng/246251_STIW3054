@@ -1,59 +1,88 @@
 package org.realtime;
 
+
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
+import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import org.apache.commons.math3.stat.descriptive.moment.Variance;
+
+import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.math3.stat.descriptive.moment.Mean;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
-import org.apache.commons.math3.stat.descriptive.moment.Variance;
-import org.apache.commons.math3.stat.descriptive.summary.Sum;
+
 /**
  * Hello world!
  *
  */
 public class App 
 {
-    private static ArrayList<String> pathArrayList = new ArrayList<>();
-
-
-    public static void main( String[] args ) {
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
+    public static void main(String[] args) {
+        int threads = Runtime.getRuntime().availableProcessors();
+        ExecutorService executorService = Executors.newFixedThreadPool(threads/2);
         ArrayList<Future<Integer>> futureIntegerArrayList = new ArrayList<>();
         ArrayList<Future<HashMap<Character, Integer>>> futureHashMapArrayList = new ArrayList<>();
-        ArrayList<Integer> totalCharactersHashMapList = new ArrayList<Integer>();
+        ArrayList<Integer> calculateSdArrayList = new ArrayList<>();
 
-        PDFFilePath();
 
-        for (int i = 0; i < pathArrayList.size(); i++) {
-            CallableCountWords callableCountWords = new CallableCountWords(pathArrayList.get(i));
+
+        // Place all the PDF document in a selected File
+        ReadDocument readDocument = new ReadDocument("D:\\Users\\User\\Desktop\\Homework\\Sem 5\\Real-Time Programming\\Test File");
+        try {
+            readDocument.readPDF();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for (int i = 0; i < readDocument.getArrayListPDF().size(); i++) {
+            CallableCountWords callableCountWords = new CallableCountWords(readDocument.getArrayListPDF().get(i));
             Future<Integer> futureInteger = executorService.submit(callableCountWords);
             futureIntegerArrayList.add(futureInteger);
 
-            CallableCountCharacters callableCountCharacters = new CallableCountCharacters(pathArrayList.get(i));
+            CallableCountCharacters callableCountCharacters = new CallableCountCharacters(readDocument.getArrayListPDF().get(i));
             Future<HashMap<Character, Integer>> futureHashMap = executorService.submit(callableCountCharacters);
             futureHashMapArrayList.add(futureHashMap);
         }
 
         AtomicInteger totalWords = new AtomicInteger();
+        Mean mean = new Mean();
+        Variance sVariance = new Variance();
+        Variance pVariance = new Variance(false);
+        StandardDeviation sampleSD = new StandardDeviation();
+        StandardDeviation populationSD = new StandardDeviation(false);
+        System.out.println("\n$---------- Total Words for Each Document ----------$");
         futureIntegerArrayList.forEach(future -> {
             try {
                 System.out.println("Document : " + future.get() + " Words");
                 totalWords.addAndGet(future.get());
+                int Number = future.get();
+                calculateSdArrayList.add(Number);
+
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         });
-
         System.out.println("Total Words from Documents : " + totalWords);
+
+        //calculate sd
+        double[] calculateArray = new double[calculateSdArrayList.size()];
+        for (int k = 0; k < calculateArray.length; k++) {
+            calculateArray[k] = calculateSdArrayList.get(k);
+        }
+        System.out.println("Mean : " + mean.evaluate(calculateArray));
+        System.out.println("Sample Variance : " + sVariance.evaluate(calculateArray));
+        System.out.println("Population Variance : " + pVariance.evaluate(calculateArray));
+        System.out.println("Sample SD : " + sampleSD.evaluate(calculateArray));
+        System.out.println("Population SD : " + populationSD.evaluate(calculateArray));
+
         System.out.println("\n$---------- Total Characters ----------$");
 
-        for (int i = 0; i < futureHashMapArrayList.size(); i++) {
+        for (int i = 0; i < futureHashMapArrayList.size(); i++){
             try {
                 System.out.println(futureHashMapArrayList.get(i).get());
             } catch (InterruptedException | ExecutionException e) {
@@ -67,7 +96,6 @@ public class App
             try {
                 futureHashMapArrayList.get(j).get().forEach((key, value) -> {
                     totalCharactersHashMap.merge(key, value, Integer::sum);
-
                 });
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
@@ -75,63 +103,9 @@ public class App
         }
 
         System.out.println("\n$---------- Total Characters ----------$");
-
-            //start from here I edit
-
-            Mean mean = new Mean();
-            Variance sVariance = new Variance();
-            Variance pVariance = new Variance(false);
-            StandardDeviation sampleSD = new StandardDeviation();
-            StandardDeviation populationSD = new StandardDeviation(false);
-
-
-        for (Map.Entry<Character, Integer> entry : totalCharactersHashMap.entrySet()) {
-            Character key = entry.getKey();
-            Integer value = entry.getValue();
-            totalCharactersHashMapList.add(value);
-            System.out.println(key + " : " + value + " ");
-        }
-
-            double[] calculateArray = new double[totalCharactersHashMapList.size()];
-            for (int k = 0; k < calculateArray.length; k++) {
-                calculateArray[k] = totalCharactersHashMapList.get(k);
-            }
-
-
-            System.out.println("Mean : " + mean.evaluate(calculateArray));
-            System.out.println("Sample Variance : " + sVariance.evaluate(calculateArray));
-            System.out.println("Population Variance : " + pVariance.evaluate(calculateArray));
-            System.out.println("Sample SD : " + sampleSD.evaluate(calculateArray));
-            System.out.println("Population SD : " + populationSD.evaluate(calculateArray));
-            System.out.println();
+        totalCharactersHashMap.forEach((key, value) -> System.out.println(key + " : " + value + " "));
 
         executorService.shutdown();
-        }
-
-
-//        double count = 0;
-//        double sum = 0;
-//        for (Map.Entry<Character, Integer> entry : totalCharactersHashMap.entrySet()) {
-//            Character key = entry.getKey();
-//            Integer value = entry.getValue();
-//            count++;
-//            sum = sum + value;
-//            System.out.println(key + " : " + value + " ");
-//        }
-//        double mean = sum/count;
-//        double temp = 0;
-//        for (Map.Entry<Character, Integer> entry : totalCharactersHashMap.entrySet()) {
-//            temp = temp + Math.pow((entry.getValue() - mean),2);
-//        }
-//        double SD = Math.sqrt(temp/count);
-//        System.out.println("SD is: " + SD);
-
-
-
-
-    public static void PDFFilePath(){
-        // PDF Document Path
-        pathArrayList.add("D:/Users/User/Desktop/Homework/Sem 5/Real-time Programming/Zhamri_UCP-CkMetrics (updated).pdf");
     }
 
 }
