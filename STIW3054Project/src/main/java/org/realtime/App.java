@@ -54,7 +54,7 @@ public class App {
 
         System.out.println(" ");
         for(int i=0;i<zs.length;i++){
-            System.out.println("Z-Score of file" + (i+1) + ": " + zs[i]);
+            System.out.println("Z-Score of pdf " + (i+1) + ": " + zs[i]);
 
         }
 
