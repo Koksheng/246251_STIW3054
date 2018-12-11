@@ -1,0 +1,33 @@
+package org.realtime;
+
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
+public class CountZScore implements CountZScoreInterface {
+
+
+    public double[] normalize;
+
+    public double[] normalize(double[] mathArray,double mean, double sd) {
+
+        DescriptiveStatistics stats = new DescriptiveStatistics();
+
+        // Add the data from the series to stats
+        for(double num:mathArray){
+            stats.addValue(num);
+        }
+
+        // initialize the standardizedSample, which has the same length as the sample
+        double[] standardizedSample = new double[mathArray.length];
+
+        for (int i = 0; i < mathArray.length; i++) {
+            // z = (x- mean)/standardDeviation
+            standardizedSample[i] = (mathArray[i] - mean) / sd;
+        }
+        return standardizedSample;
+    }
+
+    @Override
+    public double[] normalize(double[] mathArray) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+}
