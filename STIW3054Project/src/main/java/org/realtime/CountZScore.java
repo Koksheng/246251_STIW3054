@@ -3,10 +3,9 @@ package org.realtime;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 public class CountZScore implements CountZScoreInterface {
+    
 
-
-    public double[] normalize;
-
+    @Override
     public double[] normalize(double[] mathArray,double mean, double sd) {
 
         DescriptiveStatistics stats = new DescriptiveStatistics();
@@ -26,8 +25,5 @@ public class CountZScore implements CountZScoreInterface {
         return standardizedSample;
     }
 
-    @Override
-    public double[] normalize(double[] mathArray) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 }
+
