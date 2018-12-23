@@ -84,10 +84,14 @@ public class App {
 
 
         GraphNormalization graphNormalization = new GraphNormalization();
-        DrawBoxplot drawBoxplot = new DrawBoxplot();
+        //DrawBoxplot drawBoxplot = new DrawBoxplot();
 
         graphNormalization.normalizationGraph();
-        drawBoxplot.boxplotGraph();
+        
+        EventQueue.invokeLater(new DrawBoxplot()::display);
+        
+        
+        
     }
 
 }
