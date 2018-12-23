@@ -1,5 +1,6 @@
 package com.realtime;
 
 public interface DrawBoxplotInterface {
-    public void boxplotGraph();
+
+    public void display();
 }
